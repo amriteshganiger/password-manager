@@ -11,62 +11,82 @@ db=mysql.connect(host="localhost",user="#MYSQLUSER",password="#MYSQLPASS",databa
 #Creating Cursor object to take actions through script
 cursor=db.cursor()
 
-pin=input("Please enter the Pin to ENTER: ")
-
-while pin == "7580":
-    option=input("""Would you like to ADD or FETCH?
-                    ADD = 1 
-                    FETCH = 2
-                    quit=Q: """)
-    if option == '1':
-        nickname=input("Enter a nickname for this save: ")
-        email=input("Enter your email: ")
-        pwd=input("Enter your password: ")
-    elif option=='2':
-        nick=input("Enter the nickname: ")
-    elif option=="Q" or "q":
-        break
-    else: 
-        print("You have selected wrong option!")
-
-def commandExe(command):
-    cursor.execute(command)
+fields=[]
+entries=[]
 
 
-def manager():
-    while pin == "7580":
-        option=input("""\nWould you like to ADD or FETCH?
-                        ADD = 1 
-                        FETCH = 2
-                        quit=Q: """)
-        if option == '1':
-            nickname=input("Enter a nickname for this save: ")
-            usrname=input("Enter username for this save: ")
-            email=input("Enter your email: ")
-            pwd=input("Enter your password: ")
-            add="INSERT INTO users(NICKNAME,USERNAME,EMAIL,PASS) VALUES ('%s','%s','%s','%s')"%(nickname,usrname,email,pwd)
-            commandExe(add)
-            db.commit()
-            continue
-        elif option=='2':
-            output=cursor.fetchall()
-            print ("Select your Nickname ID: \n")
-            for x in output:
-                print (x[0], ":" ,x[2])
-            fetchID=int(input("\n ENTER ID: ") )  
+def raise_frame(frame):
+    frame.tkraise()
 
-            print ("""\nThis is your USERNAME: {}
-This is your EMAIL: {}
-This is your PASSWORD: {}  """.format( output[fetchID-1][1],output[fetchID-1][3],output[fetchID-1][4] ))         
-        elif option=="Q" or "q":
-            break
-        else: 
-            print("You have selected wrong option!")
+def add_DB():
+    nickname=entries[0].get()
+    username=entries[1].get()
+    email=entries[2].get()
+    pwd=entries[3].get()
+    add="INSERT INTO users(NICKNAME,USERNAME,EMAIL,PASS) VALUES ('%s','%s','%s','%s')"%(nickname,username,email,pwd)
+    cursor.execute(add)
+    db.commit()
+    
 
-#Fetching all data from DB
-fetch="SELECT * FROM users"
-commandExe(fetch)
+root=Tk()
+root.wm_title("Password Manager")
+root.geometry('300x300')
+mainFrame=Frame(root)
+addFrame=Frame(root)
+fetchFrame=Frame(root)
+lastFrame=Frame(root)
 
-manager()
+for frame in (mainFrame,addFrame, fetchFrame,lastFrame):
+    frame.grid(row=0, column=0, sticky='news')
 
-db.close()
+
+addBtn=Button(mainFrame, text="ADD", command=lambda:raise_frame(addFrame)).pack()
+fetchBtn=Button(mainFrame, text="FETCH", command=lambda: raise_frame(fetchFrame)).pack()
+
+
+L_nick=Label(addFrame, text="Nick Name").grid(row=0,column=0)
+L_user=Label(addFrame, text="User Name").grid(row=1,column=0)
+L_email=Label(addFrame, text="Email").grid(row=2,column=0)
+L_pass=Label(addFrame, text="Password").grid(row=3,column=0)
+
+for i in range(4):
+    var=StringVar()
+    entry=Entry(addFrame, textvariable=var).grid(row=i,column=1)
+    entries.append(var)
+    fields.append(entry)
+
+addUserBtn=Button(addFrame, text="Add User", command=add_DB).grid(row=4,column=1)
+
+cursor.execute("SELECT * FROM users")
+userData=cursor.fetchall()
+fetchLB=Listbox(fetchFrame,selectmode='single' )
+
+for nicknames in userData: 
+    
+    fetchLB.insert(END,nicknames[1])
+picknick=fetchLB.curselection()
+#picknick=int(picknick[0])
+
+#BELOW CODE NOT WORKING
+def fetch_DB():
+    cursor.execute()
+
+
+fetchThis=Button(fetchFrame, text="Fetch This",command=lambda:raise_frame(lastFrame))
+
+fetchData=["Username: ","Email: ","Password: "]
+
+for field in range(len(fetchData)):
+    Label(lastFrame, text=fetchData[field]).grid(row=field,column=0)
+
+for data in range( len(fetchData)):
+    i=2
+    Label(lastFrame, text=userData[picknick][i]).grid(row=1,column=i-2)
+    i+=1
+
+fetchLB.pack()
+fetchThis.pack()
+
+
+raise_frame(mainFrame)
+root.mainloop()
