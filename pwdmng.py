@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 #Importing GUI library Tkinter
-import tkinter as ttk 
+from tkinter import* 
 #Importing MySQL Lib
 import mysql.connector as mysql
 
@@ -64,29 +64,35 @@ fetchLB=Listbox(fetchFrame,selectmode='single' )
 for nicknames in userData: 
     
     fetchLB.insert(END,nicknames[1])
-picknick=fetchLB.curselection()
-#picknick=int(picknick[0])
 
-#BELOW CODE NOT WORKING
+cursor.execute("SELECT * FROM users")
+userData=cursor.fetchall()
+fetchLB=Listbox(fetchFrame,selectmode='single' )
+
+for nicknames in userData: 
+    
+    fetchLB.insert(END,nicknames[1])
+
 def fetch_DB():
-    cursor.execute()
+    picknick=fetchLB.curselection()
+    if len(picknick)>0:
+        picknick_text=int(picknick[0])
 
+        lastFrame.tkraise()
 
-fetchThis=Button(fetchFrame, text="Fetch This",command=lambda:raise_frame(lastFrame))
+        Label(lastFrame, text=userData[picknick_text][2]).grid(row=0,column=1)
+        Label(lastFrame, text=userData[picknick_text][3]).grid(row=1,column=1)
+        Label(lastFrame, text=userData[picknick_text][4]).grid(row=2,column=1)
+fetchThis=Button(fetchFrame, text="Fetch This",command=fetch_DB)
 
 fetchData=["Username: ","Email: ","Password: "]
 
 for field in range(len(fetchData)):
     Label(lastFrame, text=fetchData[field]).grid(row=field,column=0)
 
-for data in range( len(fetchData)):
-    i=2
-    Label(lastFrame, text=userData[picknick][i]).grid(row=1,column=i-2)
-    i+=1
 
 fetchLB.pack()
 fetchThis.pack()
-
 
 raise_frame(mainFrame)
 root.mainloop()
